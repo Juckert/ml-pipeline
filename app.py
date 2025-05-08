@@ -1,24 +1,21 @@
 from fastapi import FastAPI
 import pickle
-import pandas as pd
+import numpy as np
+from pydantic import BaseModel
 
-# Загружаем обученную модель
-model = pickle.load(open("model.pkl", "rb"))
-
-# Инициализация FastAPI
+# Инициализация API
 app = FastAPI()
 
-@app.get("/")
-def read_root():
-    return {"message": "Model API is running"}
+# Загрузка модели
+with open("model.pkl", "rb") as f:
+    model = pickle.load(f)
+
+# Схема входных данных
+class InputData(BaseModel):
+    features: list
 
 @app.post("/predict/")
-def predict(input_data: dict):
-    # Преобразуем входные данные в формат DataFrame
-    df = pd.DataFrame(input_data)
-    
-    # Предсказание
-    prediction = model.predict(df)
-    
-    # Возвращаем результат предсказания
+def predict(data: InputData):
+    prediction = model.predict(data.features)
     return {"prediction": prediction.tolist()}
+
